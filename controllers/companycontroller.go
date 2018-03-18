@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"golang.org/x/crypto/bcrypt"
-	
+
 	"golang-erp/models"
 	"golang-erp/validators"
 	"golang-erp/repositories"
@@ -43,7 +43,7 @@ func (main *CompanyController) CreateCompany(c *gin.Context) {
 		if errPass != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		}
-		user:=&models.Company{Name: form.Name, Email: form.Email, Password: string(passwordHash), Telephone: form.Telephone, Code: form.Code, Is_active:0, Is_verified:0}
+		user := &models.Company{Name: form.Name, Email: form.Email, Password: string(passwordHash), Telephone: form.Telephone, Code: form.Code, Is_active: 0, Is_verified: 0}
 		main.Db.Create(&user)
 		c.JSON(200, gin.H{"created": user, "result": "ok!"})
 	} else {

@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"net/http"
+	"strings"
 	"golang.org/x/crypto/bcrypt"
 
 	"golang-erp/models"
@@ -12,6 +13,11 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	"github.com/jinzhu/gorm"
+	"crypto/hmac"
+	"crypto/sha256"
+	"crypto/md5"
+	"encoding/base64"
+	"encoding/hex"
 )
 
 var ErrInvalidArgument = errors.New("invalid argument")
@@ -57,15 +63,17 @@ func (main *CompanyController) LoginCompany(c *gin.Context) {
 	if err := c.ShouldBindJSON(&form); err == nil {
 		user, errFind := models.FindCompanyByEmail(main.Db, form.Email)
 		if errFind != nil {
-			c.JSON(200, gin.H{"login": nil, "result": errFind.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"login": nil, "result": errFind.Error()})
 			return
 		}
 		hashPassword := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(form.Password))
 		if hashPassword != nil {
-			c.JSON(200, gin.H{"result": "Bad Login!"})
+			c.JSON(http.StatusBadRequest, gin.H{"result": "Bad Login!"})
 			return
 		}
-		c.JSON(200, gin.H{"login": user.Email, "result": "ok!"})
+		signed := SignHash("234423", "#ads34!^%", user.Email)
+		md5 := CalculateMD5(signed)
+		c.JSON(200, gin.H{"login": user.Email, "hash": signed, "md5": md5, "result": "ok!"})
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"login": nil, "result": err.Error()})
 	}
@@ -77,6 +85,38 @@ func assemble(c *models.Company) models.Company {
 		Name:  string(c.Name),
 		Email: c.Email,
 	}
+}
+
+/**
+ * Compute HMAC
+ */
+func ComputeHmac256(message string, secret string) string {
+	key := []byte(secret)
+	h := hmac.New(sha256.New, key)
+	h.Write([]byte(message))
+	return base64.StdEncoding.EncodeToString(h.Sum(nil))
+}
+
+/**
+ * Compute MD5
+ */
+func CalculateMD5(content string) string {
+	h := md5.New()
+	h.Write([]byte(content))
+    return hex.EncodeToString(h.Sum(nil))
+}
+
+/**
+ * Signing Signature for Secure Request.
+ * SignHash("234423", "#ads34!^%", "your content")
+ */
+func SignHash(apiKey string, apiSecret string, content string) string {
+	replaceApi := strings.TrimSpace(apiKey)
+	replaceSecret := strings.TrimSpace(apiSecret)
+	bodymd5 := CalculateMD5(content)
+	stringToSign :=
+		"AUTH/auth?api_key=" + strings.ToLower(replaceApi) + "&api_secret=" + strings.ToLower(replaceSecret) + "&auth_version=1.0" + "&body_md5=" + bodymd5
+	return ComputeHmac256(stringToSign, apiSecret)
 }
 
 // Samples

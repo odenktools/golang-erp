@@ -11,6 +11,7 @@ go get -v github.com/json-iterator/go
 go get -v github.com/lib/pq
 go get -v github.com/inconshreveable/log15
 go get -v github.com/kardianos/govendor
+go get -v golang.org/x/crypto/bcrypt
 ```
 
 #### Run

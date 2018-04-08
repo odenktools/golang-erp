@@ -27,6 +27,8 @@ Thumbs.db
 backup
 backup?
 
+tmp/
+
 # Test binary, build with `go test -c`
 *.test
 

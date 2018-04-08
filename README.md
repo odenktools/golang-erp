@@ -2,7 +2,6 @@
 
 #### Installing
 
-
 ```bash
 go get -v github.com/tools/godep
 go get -v github.com/gin-gonic/gin
@@ -12,7 +11,27 @@ go get -v github.com/lib/pq
 go get -v github.com/inconshreveable/log15
 go get -v github.com/kardianos/govendor
 go get -v golang.org/x/crypto/bcrypt
+go get -v github.com/pilu/fresh
+go get -v github.com/Masterminds/glide
 ```
+
+#### Glide On Windows
+
+Modify ```$GOPATH\src\github.com\Masterminds\glide\path\winbug.go```
+
+Replace
+
+```
+cmd := exec.Command("cmd.exe", "/c", "move", o, n)
+```
+
+With
+
+```
+cmd := exec.Command("cmd.exe", "/c", "xcopy /s/y", o, n+"\\")
+```
+
+```go get -u github.com/Masterminds/glide``` to build the modified file
 
 #### Run
 
@@ -44,7 +63,6 @@ curl -X POST \
   "password": "odenktools86"
 }'
 ```
-
 
 ```bash
 curl -X GET \
